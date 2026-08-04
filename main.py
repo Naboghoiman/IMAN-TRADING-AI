@@ -1,6 +1,6 @@
 
 # IMAN TRADING AI MAIN ENGINE
-
+# Version 1.0
 from data import get_eth_price
 from strategy import analyze_signal
 from telegram_bot import send_alert
