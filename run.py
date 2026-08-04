@@ -35,4 +35,4 @@ while True:
     except Exception as e:
         print("ERROR:", e)
         time.sleep(60)
-        print("✅ IMAN TRADING AI ONLINE")
+        
