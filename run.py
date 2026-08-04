@@ -19,9 +19,8 @@ def start_web():
     app.run(host="0.0.0.0", port=10000)
 
 
-print("🤖 IMAN TRADING AI APPLICATION STARTED")
+print("🤖 IMAN TRADING AI APPLICATION STARTED 🚀", flush=True)
 
-print("🤖 IMAN TRADING AI APPLICATION STARTED 🚀")
 
 # Start Render web server
 threading.Thread(target=start_web).start()
@@ -29,17 +28,21 @@ threading.Thread(target=start_web).start()
 
 while True:
     print("AI LOOP STARTED", flush=True)
+
     try:
-        
-df = get_eth_candles()
-print("DATA SIZE:", len(df), flush=True)
+        print("FETCHING CANDLES...", flush=True)
+
+        df = get_eth_candles()
+
+        print("DATA SIZE:", len(df), flush=True)
+
         df = add_indicators(df)
 
         result = generate_signal(df)
 
         price = df.iloc[-1]["close"]
 
-        print("==========================")
+        print("==============================")
         print("ETH/USD PRICE:", price)
         print("SIGNAL:", result["SIGNAL"])
         print("CONFIDENCE:", result["CONFIDENCE"])
@@ -48,12 +51,11 @@ print("DATA SIZE:", len(df), flush=True)
         for r in result["REASONS"]:
             print("-", r)
 
-        print("==========================")
-        print("Next scan in 5 minutes...")
+        print("==============================")
+        print("Next scan in 5 minutes...", flush=True)
 
         time.sleep(300)
 
     except Exception as e:
-        print("ERROR:", e)
+        print("ERROR:", e, flush=True)
         time.sleep(60)
-        
