@@ -28,6 +28,7 @@ threading.Thread(target=start_web).start()
 
 
 while True:
+    print("AI LOOP STARTED", flush=True)
     try:
         df = get_eth_candles()
 
