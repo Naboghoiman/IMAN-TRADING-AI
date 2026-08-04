@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IMAN Trading AI</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+    font-family: Arial;
+    background: #111;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.card {
+    background: #222;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    margin: auto;
+}
+
+.signal {
+    font-size: 40px;
+    font-weight: bold;
+    margin: 20px;
+}
+
+.item {
+    font-size: 18px;
+    margin: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>IMAN'S TRADING AI</h1>
+
+<div class="card">
+
+<div class="item">
+PAIR: {{data.pair}}
+</div>
+
+<div class="signal">
+{{data.signal}}
+</div>
+
+<div class="item">
+Confidence: {{data.confidence}}
+</div>
+
+<div class="item">
+Time: {{data.time}}
+</div>
+
+<div class="item">
+{{data.message}}
+</div>
+
+</div>
+
+<script>
+setInterval(function(){
+    location.reload();
+},5000);
+</script>
+
+</body>
+</html>
