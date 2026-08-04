@@ -1,48 +1,40 @@
-import requests
+
+import MetaTrader5 as mt5
 import pandas as pd
 
 
 def get_eth_candles():
 
-    url = "https://api.kraken.com/0/public/OHLC"
+    symbol = "ETHUSD"
 
-    params = {
-        "pair": "ETHUSD",
-        "interval": 5
-    }
-
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        data = response.json()
-
-        result = data["result"]
-
-        pair = [x for x in result if x != "last"][0]
-
-        candles = result[pair]
-
-        df = pd.DataFrame(
-            candles,
-            columns=[
-                "time",
-                "open",
-                "high",
-                "low",
-                "close",
-                "vwap",
-                "volume",
-                "count"
-            ]
-        )
-
-        df["open"] = df["open"].astype(float)
-        df["high"] = df["high"].astype(float)
-        df["low"] = df["low"].astype(float)
-        df["close"] = df["close"].astype(float)
-        df["volume"] = df["volume"].astype(float)
-
-        return df
-
-    except Exception as e:
-        print("DATA ERROR:", e)
+    if not mt5.initialize():
+        print("MT5 CONNECTION FAILED")
         return pd.DataFrame()
+
+    rates = mt5.copy_rates_from_pos(
+        symbol,
+        mt5.TIMEFRAME_M5,
+        0,
+        100
+    )
+
+    if rates is None:
+        print("NO EXNESS DATA")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rates)
+
+    df["time"] = pd.to_datetime(df["time"], unit="s")
+
+    df.rename(
+        columns={
+            "open": "open",
+            "high": "high",
+            "low": "low",
+            "close": "close",
+            "tick_volume": "volume"
+        },
+        inplace=True
+    )
+
+    return df
