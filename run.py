@@ -46,6 +46,7 @@ while True:
 
 
         result = generate_signal(df)
+        update_dashboard(result)
 
 
         price = df.iloc[-1]["close"]
