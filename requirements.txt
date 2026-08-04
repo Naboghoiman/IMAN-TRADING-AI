@@ -4,4 +4,6 @@ requests
 pandas
 numpy
 python-dotenv
+flask
+gunicorn
 
