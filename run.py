@@ -6,6 +6,7 @@ import time
 from market_data import get_eth_candles
 from indicators import add_indicators
 from signal_engine import generate_signal
+from dashboard_update import update_dashboard
 from telegram_bot import send_alert
 
 
