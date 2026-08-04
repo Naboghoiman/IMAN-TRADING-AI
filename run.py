@@ -48,6 +48,11 @@ while True:
 
         result = generate_signal(df)
         update_dashboard(result)
+        save_prediction(
+    result["SIGNAL"],
+    result["CONFIDENCE"],
+    df.iloc[-1]["close"]
+        )
 
 
         price = df.iloc[-1]["close"]
