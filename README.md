@@ -1,0 +1,2 @@
+# IMAN-TRADING-AI
+Trading 
