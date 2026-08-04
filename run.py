@@ -6,7 +6,7 @@ import time
 
 print("🤖 IMAN TRADING AI APPLICATION STARTED")
 
-
+print("✅ IMAN TRADING AI ONLINE")
 while True:
 
     try:
