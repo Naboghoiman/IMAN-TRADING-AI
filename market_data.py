@@ -4,37 +4,53 @@ import pandas as pd
 
 def get_eth_candles():
 
-    url = "https://api.binance.com/api/v3/klines"
+    url = "https://api.kraken.com/0/public/OHLC"
 
     params = {
-        "symbol": "ETHUSDT",
-        "interval": "5m",
-        "limit": 100
+        "pair": "ETHUSD",
+        "interval": 5
     }
 
-    response = requests.get(url, params=params, timeout=10)
+    try:
+        response = requests.get(url, params=params, timeout=10)
 
-    print("BINANCE STATUS:", response.status_code, flush=True)
+        data = response.json()
 
-    data = response.json()
+        if "result" not in data:
+            print("KRAKEN ERROR:", data)
+            return pd.DataFrame()
 
-    if not isinstance(data, list):
-        print("BINANCE ERROR:", data, flush=True)
-        return pd.DataFrame()
+        result = data["result"]
 
-    df = pd.DataFrame(
-        data,
-        columns=[
-            "time",
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume",
-            "close_time",
-            "qav",
-            "trades",
-            "tb_base",
+        pair_key = [x for x in result.keys() if x != "last"][0]
+
+        candles = result[pair_key]
+
+        df = pd.DataFrame(
+            candles,
+            columns=[
+                "time",
+                "open",
+                "high",
+                "low",
+                "close",
+                "vwap",
+                "volume",
+                "count"
+            ]
+        )
+
+        df["open"] = df["open"].astype(float)
+        df["high"] = df["high"].astype(float)
+        df["low"] = df["low"].astype(float)
+        df["close"] = df["close"].astype(float)
+        df["volume"] = df["volume"].astype(float)
+
+        return df
+
+    except Exception as e:
+        print("DATA ERROR:", e)
+        return pd.DataFrame()            "tb_base",
             "tb_quote",
             "ignore"
         ]
