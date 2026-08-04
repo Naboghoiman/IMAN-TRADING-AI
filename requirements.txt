@@ -4,4 +4,4 @@ requests
 pandas
 numpy
 python-dotenv
-MetaTrader5
+
