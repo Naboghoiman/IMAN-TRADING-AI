@@ -1,6 +1,7 @@
 from flask import Flask
 import threading
 import time
+from datetime import datetime
 
 from market_data import get_eth_candles
 from indicators import add_indicators
@@ -9,48 +10,132 @@ from signal_engine import generate_signal
 
 app = Flask(__name__)
 
-
-latest_result = "Starting IMAN TRADING AI..."
+latest = {
+    "signal": "STARTING...",
+    "confidence": 0,
+    "price": 0,
+    "reasons": [],
+    "time": "Loading..."
+}
 
 
 @app.route("/")
-def home():
+def dashboard():
+
+    reasons = "<br>".join(
+        ["• " + r for r in latest["reasons"]]
+    )
+
     return f"""
+    <!DOCTYPE html>
     <html>
     <head>
     <title>IMAN TRADING AI</title>
+
     <meta http-equiv="refresh" content="10">
+
+    <style>
+
+    body {{
+        background:#101010;
+        color:white;
+        font-family:Arial;
+        padding:20px;
+    }}
+
+    .box {{
+        background:#1e1e1e;
+        padding:25px;
+        border-radius:15px;
+        max-width:500px;
+    }}
+
+    .signal {{
+        font-size:30px;
+        font-weight:bold;
+        margin:20px 0;
+    }}
+
+    </style>
+
     </head>
 
-    <body style="background:#111;color:white;font-family:Arial;padding:25px">
+    <body>
+
+    <div class="box">
 
     <h1>🤖 IMAN TRADING AI</h1>
 
-    <h2>Live ETH/USD Predictor</h2>
+    <h3>ETH/USD</h3>
 
-    <pre style="
-    background:#222;
-    padding:20px;
-    border-radius:10px;
-    font-size:18px;
-    white-space:pre-wrap;
-    ">
-{latest_result}
-    </pre>
+    <p>TIMEFRAME: 5 MINUTES</p>
+
+    <hr>
+
+    <div class="signal">
+    SIGNAL: {latest["signal"]}
+    </div>
+
+
+    <h2>
+    CONFIDENCE:
+    {latest["confidence"]}%
+    </h2>
+
+
+    <h3>
+    PRICE:
+    {latest["price"]}
+    </h3>
+
+
+    <hr>
+
+
+    <h3>ANALYSIS</h3>
+
+    <p>
+    {reasons}
+    </p>
+
+
+    <hr>
+
+
+    <p>
+    LAST UPDATE:
+    {latest["time"]}
+    </p>
+
+
+    <p>
+    NEXT SCAN:
+    5 MINUTES
+    </p>
+
+
+    </div>
 
     </body>
+
     </html>
     """
 
 
-def start_web():
-    app.run(host="0.0.0.0", port=10000)
+def run_web():
+
+    app.run(
+        host="0.0.0.0",
+        port=10000
+    )
 
 
-print("🤖 IMAN TRADING AI STARTED")
+threading.Thread(
+    target=run_web
+).start()
 
 
-threading.Thread(target=start_web).start()
+print("🤖 IMAN TRADING AI DASHBOARD STARTED")
 
 
 while True:
@@ -63,65 +148,34 @@ while True:
 
         result = generate_signal(df)
 
-
         price = df.iloc[-1]["close"]
 
 
-        reasons = "\n".join(
-            ["• " + r for r in result["REASONS"]]
+        latest["signal"] = result["SIGNAL"]
+
+        latest["confidence"] = result["CONFIDENCE"]
+
+        latest["price"] = price
+
+        latest["reasons"] = result["REASONS"]
+
+        latest["time"] = datetime.now().strftime(
+            "%H:%M:%S"
         )
 
 
-        latest_result = f"""
-
-🤖 IMAN TRADING AI
-
-PAIR:
-ETH/USD
-
-TIMEFRAME:
-5 MINUTES
-
-━━━━━━━━━━━━━━━━
-
-SIGNAL:
-{result["SIGNAL"]}
-
-CONFIDENCE:
-{result["CONFIDENCE"]}%
-
-CURRENT PRICE:
-{price}
-
-━━━━━━━━━━━━━━━━
-
-ANALYSIS:
-
-{reasons}
-
-
-━━━━━━━━━━━━━━━━
-
-NEXT SCAN:
-5 MINUTES
-
-"""
-
-
-        print(latest_result, flush=True)
+        print(
+            "SIGNAL:",
+            latest["signal"]
+        )
 
 
     except Exception as e:
 
-        latest_result = f"""
-⚠️ ERROR
-
-{e}
-
-Retrying...
-"""
-
-        print(e, flush=True)
+        print(
+            "ERROR:",
+            e
+        )
 
 
     time.sleep(300)
