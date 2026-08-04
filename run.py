@@ -30,8 +30,9 @@ threading.Thread(target=start_web).start()
 while True:
     print("AI LOOP STARTED", flush=True)
     try:
-        df = get_eth_candles()
-
+        
+df = get_eth_candles()
+print("DATA SIZE:", len(df), flush=True)
         df = add_indicators(df)
 
         result = generate_signal(df)
