@@ -1,146 +1,63 @@
 from flask import Flask
 import threading
 import time
-from datetime import datetime
 
 from market_data import get_eth_candles
 from indicators import add_indicators
 from signal_engine import generate_signal
+from telegram_bot import send_alert
 
 
 app = Flask(__name__)
 
-latest = {
-    "signal": "STARTING...",
-    "confidence": 0,
-    "price": 0,
-    "reasons": [],
-    "time": "Loading..."
-}
+latest_result = "Starting IMAN TRADING AI..."
 
 
 @app.route("/")
-def dashboard():
-
-    reasons = "<br>".join(
-        ["• " + r for r in latest["reasons"]]
-    )
-
+def home():
     return f"""
-    <!DOCTYPE html>
     <html>
     <head>
     <title>IMAN TRADING AI</title>
-
-    <meta http-equiv="refresh" content="10">
-
-    <style>
-
-    body {{
-        background:#101010;
-        color:white;
-        font-family:Arial;
-        padding:20px;
-    }}
-
-    .box {{
-        background:#1e1e1e;
-        padding:25px;
-        border-radius:15px;
-        max-width:500px;
-    }}
-
-    .signal {{
-        font-size:30px;
-        font-weight:bold;
-        margin:20px 0;
-    }}
-
-    </style>
-
+    <meta http-equiv="refresh" content="60">
     </head>
 
-    <body>
-
-    <div class="box">
+    <body style="background:#111;color:white;font-family:Arial;padding:20px">
 
     <h1>🤖 IMAN TRADING AI</h1>
 
-    <h3>ETH/USD</h3>
+    <h2>ETH/USD 5 Minute Predictor</h2>
 
-    <p>TIMEFRAME: 5 MINUTES</p>
-
-    <hr>
-
-    <div class="signal">
-    SIGNAL: {latest["signal"]}
-    </div>
-
-
-    <h2>
-    CONFIDENCE:
-    {latest["confidence"]}%
-    </h2>
-
-
-    <h3>
-    PRICE:
-    {latest["price"]}
-    </h3>
-
-
-    <hr>
-
-
-    <h3>ANALYSIS</h3>
-
-    <p>
-    {reasons}
-    </p>
-
-
-    <hr>
-
-
-    <p>
-    LAST UPDATE:
-    {latest["time"]}
-    </p>
-
-
-    <p>
-    NEXT SCAN:
-    5 MINUTES
-    </p>
-
-
-    </div>
+    <pre style="
+    background:#222;
+    padding:20px;
+    border-radius:10px;
+    font-size:18px;
+    color:white;
+    ">
+{latest_result}
+    </pre>
 
     </body>
-
     </html>
     """
 
 
-def run_web():
-
-    app.run(
-        host="0.0.0.0",
-        port=10000
-    )
+def start_web():
+    app.run(host="0.0.0.0", port=10000)
 
 
-threading.Thread(
-    target=run_web
-).start()
+threading.Thread(target=start_web).start()
 
 
-print("🤖 IMAN TRADING AI DASHBOARD STARTED")
+print("🤖 IMAN TRADING AI STARTED")
 
 
 while True:
 
     try:
+
+        print("FETCHING MARKET DATA...")
 
         df = get_eth_candles()
 
@@ -151,31 +68,51 @@ while True:
         price = df.iloc[-1]["close"]
 
 
-        latest["signal"] = result["SIGNAL"]
+        message = f"""
+🤖 IMAN TRADING AI
 
-        latest["confidence"] = result["CONFIDENCE"]
+📊 PAIR: ETH/USD
+⏱ TIMEFRAME: 5M
 
-        latest["price"] = price
+SIGNAL: {result["SIGNAL"]}
 
-        latest["reasons"] = result["REASONS"]
+CONFIDENCE: {result["CONFIDENCE"]}%
 
-        latest["time"] = datetime.now().strftime(
-            "%H:%M:%S"
-        )
+PRICE: {price}
+
+REASONS:
+"""
+
+        for reason in result["REASONS"]:
+            message += "\n• " + reason
 
 
-        print(
-            "SIGNAL:",
-            latest["signal"]
-        )
+        message += "\n\nNext scan in 5 minutes..."
+
+
+        latest_result = message
+
+
+        print(message)
+
+
+        # SEND TELEGRAM
+        try:
+            send_alert(message)
+            print("Telegram sent")
+        except Exception as e:
+            print("Telegram error:", e)
+
+
+
+        print("==============================")
+        time.sleep(300)
 
 
     except Exception as e:
 
-        print(
-            "ERROR:",
-            e
-        )
+        latest_result = "ERROR: " + str(e)
 
+        print("ERROR:", e)
 
-    time.sleep(300)
+        time.sleep(60)
