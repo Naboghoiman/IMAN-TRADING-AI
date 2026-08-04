@@ -1,7 +1,9 @@
+
 # IMAN TRADING AI MAIN ENGINE
 
 from data import get_eth_price
 from strategy import analyze_signal
+from telegram_bot import send_alert
 import time
 
 
@@ -13,7 +15,7 @@ while True:
     try:
         price = get_eth_price()
 
-        # Temporary placeholders
+        # Temporary indicators
         ema50 = price
         ema200 = price
         rsi = 50
@@ -29,13 +31,25 @@ while True:
             macd_signal
         )
 
-        print("----------------------")
-        print("ETH/USD:", price)
-        print("SIGNAL:", signal)
-        print("SCORE:", score)
+        message = f"""
+🤖 IMAN TRADING AI SIGNAL
 
-        print("Next scan in 5 minutes")
+ETH/USD PRICE:
+{price}
 
+SIGNAL:
+{signal}
+
+SCORE:
+{score}
+"""
+
+        print(message)
+
+        if signal != "WAIT":
+            send_alert(message)
+
+        print("Next scan in 5 minutes...")
         time.sleep(300)
 
     except Exception as e:
