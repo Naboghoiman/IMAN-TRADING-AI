@@ -1,3 +1,4 @@
+
 from flask import Flask
 import threading
 import time
@@ -20,7 +21,7 @@ def start_web():
     app.run(host="0.0.0.0", port=10000)
 
 
-print("🤖 IMAN TRADING AI APPLICATION STARTED")
+print("🤖 IMAN TRADING AI APPLICATION STARTED", flush=True)
 
 
 # Start Render web server
@@ -55,7 +56,6 @@ while True:
         print("CONFIDENCE:", result["CONFIDENCE"])
         print("REASONS:")
 
-
         for r in result["REASONS"]:
             print("-", r)
 
@@ -63,25 +63,30 @@ while True:
         message = f"""
 🤖 IMAN TRADING AI
 
-📊 ETH/USD
+📊 PAIR: ETH/USD
+⏱ TIMEFRAME: 5M
 
 SIGNAL: {result["SIGNAL"]}
+
 CONFIDENCE: {result["CONFIDENCE"]}%
 
 PRICE: {price}
 
 REASONS:
+
 {chr(10).join(result["REASONS"])}
 
 Next scan in 5 minutes...
 """
 
 
+        # Send every analysis to Telegram
         send_alert(message)
+
+        print("Telegram alert sent", flush=True)
 
 
         print("==============================")
-        print("Telegram alert sent", flush=True)
         print("Next scan in 5 minutes...", flush=True)
 
 
