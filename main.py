@@ -1,57 +1,127 @@
-
-# IMAN TRADING AI MAIN ENGINE
-# Version 1.0
-from data import get_eth_price
-from strategy import analyze_signal
-from telegram_bot import send_alert
+from flask import Flask
+import threading
 import time
+
+from market_data import get_eth_candles
+from indicators import add_indicators
+from signal_engine import generate_signal
+
+
+app = Flask(__name__)
+
+
+latest_result = "Starting IMAN TRADING AI..."
+
+
+@app.route("/")
+def home():
+    return f"""
+    <html>
+    <head>
+    <title>IMAN TRADING AI</title>
+    <meta http-equiv="refresh" content="10">
+    </head>
+
+    <body style="background:#111;color:white;font-family:Arial;padding:25px">
+
+    <h1>🤖 IMAN TRADING AI</h1>
+
+    <h2>Live ETH/USD Predictor</h2>
+
+    <pre style="
+    background:#222;
+    padding:20px;
+    border-radius:10px;
+    font-size:18px;
+    white-space:pre-wrap;
+    ">
+{latest_result}
+    </pre>
+
+    </body>
+    </html>
+    """
+
+
+def start_web():
+    app.run(host="0.0.0.0", port=10000)
 
 
 print("🤖 IMAN TRADING AI STARTED")
 
 
+threading.Thread(target=start_web).start()
+
+
 while True:
 
     try:
-        price = get_eth_price()
 
-        # Temporary indicators
-        ema50 = price
-        ema200 = price
-        rsi = 50
-        macd = 0
-        macd_signal = 0
+        df = get_eth_candles()
 
-        signal, score = analyze_signal(
-            price,
-            ema50,
-            ema200,
-            rsi,
-            macd,
-            macd_signal
+        df = add_indicators(df)
+
+        result = generate_signal(df)
+
+
+        price = df.iloc[-1]["close"]
+
+
+        reasons = "\n".join(
+            ["• " + r for r in result["REASONS"]]
         )
 
-        message = f"""
-🤖 IMAN TRADING AI SIGNAL
 
-ETH/USD PRICE:
-{price}
+        latest_result = f"""
+
+🤖 IMAN TRADING AI
+
+PAIR:
+ETH/USD
+
+TIMEFRAME:
+5 MINUTES
+
+━━━━━━━━━━━━━━━━
 
 SIGNAL:
-{signal}
+{result["SIGNAL"]}
 
-SCORE:
-{score}
+CONFIDENCE:
+{result["CONFIDENCE"]}%
+
+CURRENT PRICE:
+{price}
+
+━━━━━━━━━━━━━━━━
+
+ANALYSIS:
+
+{reasons}
+
+
+━━━━━━━━━━━━━━━━
+
+NEXT SCAN:
+5 MINUTES
+
 """
 
-        print(message)
 
-        if signal != "WAIT":
-            send_alert(message)
+        print(latest_result, flush=True)
 
-        print("Next scan in 5 minutes...")
-        time.sleep(300)
 
     except Exception as e:
-        print("ERROR:", e)
-        time.sleep(60)
+
+        latest_result = f"""
+⚠️ ERROR
+
+{e}
+
+Retrying...
+"""
+
+        print(e, flush=True)
+
+
+    time.sleep(300)
