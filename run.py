@@ -20,8 +20,8 @@ def start_web():
 
 
 print("🤖 IMAN TRADING AI APPLICATION STARTED")
-print("✅ IMAN TRADING AI ONLINE")
 
+print("🤖 IMAN TRADING AI APPLICATION STARTED 🚀")
 
 # Start Render web server
 threading.Thread(target=start_web).start()
