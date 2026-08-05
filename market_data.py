@@ -1,39 +1,35 @@
+
 import requests
 import pandas as pd
-
+import time
 
 def get_eth_candles():
-
-    url = "https://api.kraken.com/0/public/OHLC"
+    url = "https://api.binance.com/api/v3/klines"
 
     params = {
-        "pair": "ETHUSD",
-        "interval": 5
+        "symbol": "ETHUSDT",
+        "interval": "5m",
+        "limit": 100
     }
 
     try:
         response = requests.get(url, params=params)
         data = response.json()
 
-        result = data["result"]
-
-        pair = [x for x in result if x != "last"][0]
-
-        candles = result[pair]
-
-        df = pd.DataFrame(
-            candles,
-            columns=[
-                "time",
-                "open",
-                "high",
-                "low",
-                "close",
-                "vwap",
-                "volume",
-                "count"
-            ]
-        )
+        df = pd.DataFrame(data, columns=[
+            "time",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "close_time",
+            "quote_volume",
+            "trades",
+            "taker_buy_base",
+            "taker_buy_quote",
+            "ignore"
+        ])
 
         df["open"] = df["open"].astype(float)
         df["high"] = df["high"].astype(float)
@@ -41,8 +37,20 @@ def get_eth_candles():
         df["close"] = df["close"].astype(float)
         df["volume"] = df["volume"].astype(float)
 
-        return df
+        df["time"] = pd.to_datetime(
+            df["time"],
+            unit="ms"
+        )
+
+        return df[[
+            "time",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume"
+        ]]
 
     except Exception as e:
-        print("DATA ERROR:", e)
+        print("BINANCE DATA ERROR:", e)
         return pd.DataFrame()
