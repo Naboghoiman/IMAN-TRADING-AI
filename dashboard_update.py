@@ -4,8 +4,11 @@ from datetime import datetime
 
 SIGNAL_FILE = "signals.json"
 
-def update_dashboard():
+def update_dashboard(data=None):
     try:
+        if data is not None:
+            return data
+
         if not os.path.exists(SIGNAL_FILE):
             return {
                 "pair": "ETH/USD",
@@ -16,17 +19,17 @@ def update_dashboard():
             }
 
         with open(SIGNAL_FILE, "r") as f:
-            data = json.load(f)
+            signal = json.load(f)
 
         return {
-            "pair": data.get("pair", "ETH/USD"),
-            "signal": data.get("signal", "WAIT"),
-            "confidence": data.get("confidence", 0),
-            "time": data.get(
+            "pair": signal.get("pair", "ETH/USD"),
+            "signal": signal.get("signal", "WAIT"),
+            "confidence": signal.get("confidence", 0),
+            "time": signal.get(
                 "time",
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             ),
-            "reason": data.get(
+            "reason": signal.get(
                 "reason",
                 "No analysis available"
             )
@@ -34,7 +37,6 @@ def update_dashboard():
 
     except Exception as e:
         print("Dashboard error:", e)
-
         return {
             "pair": "ETH/USD",
             "signal": "WAIT",
@@ -42,7 +44,3 @@ def update_dashboard():
             "time": "Error",
             "reason": str(e)
         }
-
-
-if __name__ == "__main__":
-    print(update_dashboard())
