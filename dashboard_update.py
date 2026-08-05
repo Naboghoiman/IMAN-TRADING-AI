@@ -7,6 +7,8 @@ SIGNAL_FILE = "signals.json"
 def update_dashboard(data=None):
     try:
         if data is not None:
+            with open(SIGNAL_FILE, "w") as f:
+                json.dump(data, f, indent=4)
             return data
 
         if not os.path.exists(SIGNAL_FILE):
@@ -19,21 +21,7 @@ def update_dashboard(data=None):
             }
 
         with open(SIGNAL_FILE, "r") as f:
-            signal = json.load(f)
-
-        return {
-            "pair": signal.get("pair", "ETH/USD"),
-            "signal": signal.get("signal", "WAIT"),
-            "confidence": signal.get("confidence", 0),
-            "time": signal.get(
-                "time",
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            ),
-            "reason": signal.get(
-                "reason",
-                "No analysis available"
-            )
-        }
+            return json.load(f)
 
     except Exception as e:
         print("Dashboard error:", e)
