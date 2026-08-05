@@ -1,9 +1,12 @@
-
 import requests
 import pandas as pd
-import time
+
 
 def get_eth_candles():
+    """
+    Get live ETH 5-minute candles from Binance
+    """
+
     url = "https://api.binance.com/api/v3/klines"
 
     params = {
@@ -13,8 +16,17 @@ def get_eth_candles():
     }
 
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(
+            url,
+            params=params,
+            timeout=10
+        )
+
         data = response.json()
+
+        if not isinstance(data, list):
+            print("BINANCE ERROR:", data)
+            return pd.DataFrame()
 
         df = pd.DataFrame(data, columns=[
             "time",
@@ -31,26 +43,52 @@ def get_eth_candles():
             "ignore"
         ])
 
-        df["open"] = df["open"].astype(float)
-        df["high"] = df["high"].astype(float)
-        df["low"] = df["low"].astype(float)
-        df["close"] = df["close"].astype(float)
-        df["volume"] = df["volume"].astype(float)
-
-        df["time"] = pd.to_datetime(
-            df["time"],
-            unit="ms"
-        )
-
-        return df[[
-            "time",
+        # Convert numbers
+        columns = [
             "open",
             "high",
             "low",
             "close",
             "volume"
-        ]]
+        ]
+
+        for col in columns:
+            df[col] = pd.to_numeric(
+                df[col],
+                errors="coerce"
+            )
+
+        # Convert timestamp
+        df["time"] = pd.to_datetime(
+            df["time"],
+            unit="ms"
+        )
+
+        df = df.dropna()
+
+        print(
+            "BINANCE CANDLES LOADED:",
+            len(df),
+            "LAST PRICE:",
+            df["close"].iloc[-1]
+        )
+
+        return df[
+            [
+                "time",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume"
+            ]
+        ]
+
 
     except Exception as e:
-        print("BINANCE DATA ERROR:", e)
+        print(
+            "BINANCE DATA ERROR:",
+            e
+        )
+
         return pd.DataFrame()
