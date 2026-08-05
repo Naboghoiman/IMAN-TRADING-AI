@@ -1,73 +1,72 @@
+
 import requests
 import pandas as pd
 
 
 def get_eth_candles():
     """
-    Get live ETH 5-minute candles from Binance
+    Get ETH 5-minute candles from Coinbase
     """
 
-    url = "https://api.binance.com/api/v3/klines"
+    url = "https://api.exchange.coinbase.com/products/ETH-USD/candles"
 
     params = {
-        "symbol": "ETHUSDT",
-        "interval": "5m",
-        "limit": 100
+        "granularity": 300
     }
 
     try:
         response = requests.get(
             url,
             params=params,
+            headers={
+                "User-Agent": "IMAN-Trading-AI"
+            },
             timeout=10
         )
 
         data = response.json()
 
         if not isinstance(data, list):
-            print("BINANCE ERROR:", data)
+            print("COINBASE ERROR:", data)
             return pd.DataFrame()
 
-        df = pd.DataFrame(data, columns=[
-            "time",
-            "open",
-            "high",
-            "low",
-            "close",
-            "volume",
-            "close_time",
-            "quote_volume",
-            "trades",
-            "taker_buy_base",
-            "taker_buy_quote",
-            "ignore"
-        ])
+        df = pd.DataFrame(
+            data,
+            columns=[
+                "time",
+                "low",
+                "high",
+                "open",
+                "close",
+                "volume"
+            ]
+        )
 
-        # Convert numbers
-        columns = [
+        for col in [
             "open",
             "high",
             "low",
             "close",
             "volume"
-        ]
-
-        for col in columns:
+        ]:
             df[col] = pd.to_numeric(
                 df[col],
                 errors="coerce"
             )
 
-        # Convert timestamp
         df["time"] = pd.to_datetime(
             df["time"],
-            unit="ms"
+            unit="s"
+        )
+
+        df = df.sort_values(
+            "time"
         )
 
         df = df.dropna()
 
         print(
-            "BINANCE CANDLES LOADED:",
+            "COINBASE CANDLES LOADED:",
             len(df),
             "LAST PRICE:",
             df["close"].iloc[-1]
@@ -87,8 +86,7 @@ def get_eth_candles():
 
     except Exception as e:
         print(
-            "BINANCE DATA ERROR:",
+            "COINBASE DATA ERROR:",
             e
         )
-
         return pd.DataFrame()
