@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ def get_signal():
         "pair": "ETH/USD",
         "signal": "WAIT",
         "confidence": "0%",
-        "time": str(datetime.now()),
+        "time": str(datetime.now(timezone.utc) + timedelta(hours=3)),
         "message": "No signal yet"
     }
 
