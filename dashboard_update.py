@@ -1,16 +1,48 @@
 import json
+import os
 from datetime import datetime
 
+SIGNAL_FILE = "signals.json"
 
-def update_dashboard(result):
+def update_dashboard():
+    try:
+        if not os.path.exists(SIGNAL_FILE):
+            return {
+                "pair": "ETH/USD",
+                "signal": "WAIT",
+                "confidence": 0,
+                "time": "Starting",
+                "reason": "Waiting for market data"
+            }
 
-    data = {
-        "pair": "ETH/USD",
-        "signal": result.get("SIGNAL", "WAIT"),
-        "confidence": str(result.get("CONFIDENCE", 0)) + "%",
-        "time": str(datetime.now()),
-        "message": ", ".join(result.get("REASONS", []))
-    }
+        with open(SIGNAL_FILE, "r") as f:
+            data = json.load(f)
 
-    with open("signals.json", "w") as f:
-        json.dump(data, f, indent=4)
+        return {
+            "pair": data.get("pair", "ETH/USD"),
+            "signal": data.get("signal", "WAIT"),
+            "confidence": data.get("confidence", 0),
+            "time": data.get(
+                "time",
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ),
+            "reason": data.get(
+                "reason",
+                "No analysis available"
+            )
+        }
+
+    except Exception as e:
+        print("Dashboard error:", e)
+
+        return {
+            "pair": "ETH/USD",
+            "signal": "WAIT",
+            "confidence": 0,
+            "time": "Error",
+            "reason": str(e)
+        }
+
+
+if __name__ == "__main__":
+    print(update_dashboard())
